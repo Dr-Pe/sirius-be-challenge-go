@@ -2,20 +2,32 @@ package main
 
 import (
 	"database/sql"
+	"fmt"
 
 	"github.com/gin-gonic/gin"
-	_ "github.com/mattn/go-sqlite3"
+	_ "modernc.org/sqlite"
 )
 
-var db *sql.DB
+var dbConn *sql.DB
 
 func main() {
 	var err error
-	db, err = sql.Open("sqlite3", "database.db")
+	dbConn, err = sql.Open("sqlite", "database.db")
 	if err != nil {
 		panic(err)
 	}
-	defer db.Close()
+	defer dbConn.Close()
+
+	_, err = createPlayersTable(dbConn)
+	if err != nil {
+		fmt.Println(err)
+		panic(err)
+	}
+
+	_, err = createMatchesTable(dbConn)
+	if err != nil {
+		panic(err)
+	}
 
 	router := gin.Default()
 	router.GET("/ping", func(c *gin.Context) {
