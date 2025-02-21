@@ -37,6 +37,7 @@ func main() {
 		})
 	})
 	router.POST("/players", postPlayer)
+	// router.GET("players/:id", getPlayer)
 	router.Run() // listen and serve on 0.0.0.0:8080
 }
 
@@ -48,3 +49,18 @@ func postPlayer(ctx *gin.Context) {
 	}
 	player.create(dbConn)
 }
+
+// func getPlayer(ctx *gin.Context) {
+// 	var id int
+// 	if err := ctx.ShouldBindUri(id); err != nil {
+// 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+// 		return
+// 	}
+// 	if res, err := selectPlayerById(dbConn, id); err != nil {
+// 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+// 		return
+// 	} else {
+// 		fmt.Println(res)
+// 		ctx.JSON(200, res)
+// 	}
+// }
