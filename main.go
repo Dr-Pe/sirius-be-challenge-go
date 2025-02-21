@@ -3,6 +3,7 @@ package main
 import (
 	"database/sql"
 	"fmt"
+	"net/http"
 
 	"github.com/gin-gonic/gin"
 	_ "modernc.org/sqlite"
@@ -30,10 +31,20 @@ func main() {
 	}
 
 	router := gin.Default()
-	router.GET("/ping", func(c *gin.Context) {
-		c.JSON(200, gin.H{
+	router.GET("/ping", func(ctx *gin.Context) {
+		ctx.JSON(200, gin.H{
 			"message": "pong",
 		})
 	})
+	router.POST("/players", postPlayer)
 	router.Run() // listen and serve on 0.0.0.0:8080
+}
+
+func postPlayer(ctx *gin.Context) {
+	var player Player
+	if err := ctx.ShouldBindJSON(&player); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	player.create(dbConn)
 }

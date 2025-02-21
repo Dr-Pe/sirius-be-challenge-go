@@ -2,7 +2,6 @@ package main
 
 import (
 	"database/sql"
-	"fmt"
 )
 
 func createPlayersTable(dbConn *sql.DB) (sql.Result, error) {
@@ -10,14 +9,13 @@ func createPlayersTable(dbConn *sql.DB) (sql.Result, error) {
 }
 
 type Player struct {
-	id                  int
-	name                string
-	ranking             int
-	preferred_cue       string
-	profile_picture_url string
+	id                int
+	Name              string `json:"name" binding:"required"`
+	Ranking           int    `json:"ranking"`
+	PreferredCue      string `json:"preferredCue"`
+	ProfilePictureUrl string `json:"profilePictureUrl"`
 }
 
-func (p Player) create(name string, ranking int, preferred_cue string, profile_picture_url string) {
-	// TODO: Actual query. For noew I just print on stdout what the method receives.
-	fmt.Println(name, ranking, preferred_cue, profile_picture_url)
+func (p Player) create(dbConn *sql.DB) (sql.Result, error) {
+	return dbConn.Exec("")
 }
