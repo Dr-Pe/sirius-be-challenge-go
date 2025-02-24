@@ -17,6 +17,14 @@ func selectPlayersByName(dbConn *sql.DB, name string) ([]Player, error) {
 	return selectPlayersWhere(dbConn, "SELECT * FROM players WHERE name LIKE '%"+name+"%'")
 }
 
+func selectPlayerByID(dbConn *sql.DB, id string) (Player, error) {
+	players, err := selectPlayersWhere(dbConn, "SELECT * FROM players WHERE id = "+id)
+	if err != nil {
+		return Player{}, err
+	}
+	return players[0], nil
+}
+
 func selectPlayersWhere(dbConn *sql.DB, query string) ([]Player, error) {
 	players := []Player{}
 	rows, err := dbConn.Query(query)
@@ -34,22 +42,32 @@ func selectPlayersWhere(dbConn *sql.DB, query string) ([]Player, error) {
 	return players, nil
 }
 
+func updatePlayerById(dbConn *sql.DB, id string, player Player) (sql.Result, error) {
+	return dbConn.Exec("UPDATE players SET name = ?, ranking = ?, preferred_cue = ?, profile_picture_url = ? WHERE id = ?", player.Name, player.Ranking, player.PreferredCue, player.ProfilePictureUrl, id)
+}
+
+func deletePlayerById(dbConn *sql.DB, id string) (sql.Result, error) {
+	return dbConn.Exec("DELETE FROM players WHERE id = ?", id)
+}
+
 type Player struct {
 	id                int    `uri:"id"`
 	Name              string `json:"name" binding:"required"`
-	Ranking           int    `json:"ranking"`
+	Ranking           int    `json:"ranking"` // 0 means no ranking, 1 means the best player
 	PreferredCue      string `json:"preferredCue"`
 	ProfilePictureUrl string `json:"profilePictureUrl"`
 }
 
 func (p Player) create(dbConn *sql.DB) (sql.Result, error) {
-	rows, err := dbConn.Query("SELECT * FROM players WHERE ranking = ?", p.Ranking)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	if rows.Next() {
-		return nil, fmt.Errorf("Player with ranking %d already exists", p.Ranking)
+	if p.Ranking != 0 {
+		rows, err := dbConn.Query("SELECT * FROM players WHERE ranking = ?", p.Ranking)
+		if err != nil {
+			return nil, err
+		}
+		defer rows.Close()
+		if rows.Next() {
+			return nil, fmt.Errorf("Player with ranking %d already exists", p.Ranking)
+		}
 	}
 
 	return dbConn.Exec(

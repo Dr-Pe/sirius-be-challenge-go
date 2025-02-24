@@ -31,13 +31,13 @@ func main() {
 	}
 
 	router := gin.Default()
-	router.GET("/ping", func(ctx *gin.Context) {
-		ctx.JSON(200, gin.H{
-			"message": "pong",
-		})
-	})
+
 	router.POST("/players", postPlayer)
 	router.GET("/players", getPlayers)
+	router.GET("/players/:id", getPlayer)
+	router.PUT("/players/:id", putPlayer)
+	router.DELETE("/players/:id", deletePlayer)
+
 	router.Run() // listen and serve on 0.0.0.0:8080
 }
 
@@ -81,4 +81,52 @@ func getPlayers(ctx *gin.Context) {
 		return
 	}
 	ctx.JSON(http.StatusOK, players)
+}
+
+func getPlayer(ctx *gin.Context) {
+	var err error
+	var player Player
+	var id = ctx.Param("id")
+
+	player, err = selectPlayerByID(dbConn, id)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	ctx.JSON(http.StatusOK, player)
+}
+
+func putPlayer(ctx *gin.Context) {
+	var err error
+	var id = ctx.Param("id")
+	var player Player
+
+	player, err = selectPlayerByID(dbConn, id)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	err = ctx.ShouldBindJSON(&player)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	_, err = updatePlayerById(dbConn, id, player)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	ctx.JSON(http.StatusOK, gin.H{"message": "Player updated successfully"})
+}
+
+func deletePlayer(ctx *gin.Context) {
+	var err error
+	var id = ctx.Param("id")
+
+	_, err = deletePlayerById(dbConn, id)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	ctx.JSON(http.StatusOK, gin.H{"message": "Player deleted successfully"})
 }
