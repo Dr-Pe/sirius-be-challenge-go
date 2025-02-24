@@ -13,6 +13,7 @@ var dbConn *sql.DB
 
 func main() {
 	var err error
+
 	dbConn, err = sql.Open("sqlite", "database.db")
 	if err != nil {
 		panic(err)
@@ -24,7 +25,6 @@ func main() {
 		fmt.Println(err)
 		panic(err)
 	}
-
 	_, err = createMatchesTable(dbConn)
 	if err != nil {
 		panic(err)
@@ -37,30 +37,48 @@ func main() {
 		})
 	})
 	router.POST("/players", postPlayer)
-	// router.GET("players/:id", getPlayer)
+	router.GET("/players", getPlayers)
 	router.Run() // listen and serve on 0.0.0.0:8080
 }
 
 func postPlayer(ctx *gin.Context) {
+	var err error
 	var player Player
-	if err := ctx.ShouldBindJSON(&player); err != nil {
+
+	err = ctx.ShouldBindJSON(&player)
+	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	player.create(dbConn)
+	_, err = player.create(dbConn)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	} else {
+		ctx.JSON(http.StatusOK, gin.H{"message": "Player created successfully"})
+	}
 }
 
-// func getPlayer(ctx *gin.Context) {
-// 	var id int
-// 	if err := ctx.ShouldBindUri(id); err != nil {
-// 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-// 		return
-// 	}
-// 	if res, err := selectPlayerById(dbConn, id); err != nil {
-// 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-// 		return
-// 	} else {
-// 		fmt.Println(res)
-// 		ctx.JSON(200, res)
-// 	}
-// }
+func getPlayers(ctx *gin.Context) {
+	var err error
+	var players []Player
+	var query = struct {
+		Name string `form:"name"`
+	}{}
+
+	err = ctx.ShouldBindQuery(&query)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	if query.Name != "" {
+		players, err = selectPlayersByName(dbConn, query.Name)
+	} else {
+		players, err = selectAllPlayers(dbConn)
+	}
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	ctx.JSON(http.StatusOK, players)
+}
