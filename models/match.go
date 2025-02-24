@@ -1,4 +1,4 @@
-package main
+package models
 
 import (
 	"database/sql"
@@ -6,7 +6,7 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
-func createMatchesTable(dbConn *sql.DB) (sql.Result, error) {
+func CreateMatchesTable(dbConn *sql.DB) (sql.Result, error) {
 	return dbConn.Exec("CREATE TABLE IF NOT EXISTS matches (id INTEGER PRIMARY KEY AUTOINCREMENT, playder1_id INTEGER, player2_id INTEGER, winner_id INTEGER, table_number INTEGER)")
 }
 

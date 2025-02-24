@@ -1,23 +1,23 @@
-package main
+package models
 
 import (
 	"database/sql"
 	"fmt"
 )
 
-func createPlayersTable(dbConn *sql.DB) (sql.Result, error) {
+func CreatePlayersTable(dbConn *sql.DB) (sql.Result, error) {
 	return dbConn.Exec("CREATE TABLE IF NOT EXISTS players (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, ranking INTEGER, preferred_cue TEXT, profile_picture_url TEXT)")
 }
 
-func selectAllPlayers(dbConn *sql.DB) ([]Player, error) {
+func SelectAllPlayers(dbConn *sql.DB) ([]Player, error) {
 	return selectPlayersWhere(dbConn, "SELECT * FROM players")
 }
 
-func selectPlayersByName(dbConn *sql.DB, name string) ([]Player, error) {
+func SelectPlayersByName(dbConn *sql.DB, name string) ([]Player, error) {
 	return selectPlayersWhere(dbConn, "SELECT * FROM players WHERE name LIKE '%"+name+"%'")
 }
 
-func selectPlayerByID(dbConn *sql.DB, id string) (Player, error) {
+func SelectPlayerById(dbConn *sql.DB, id string) (Player, error) {
 	players, err := selectPlayersWhere(dbConn, "SELECT * FROM players WHERE id = "+id)
 	if err != nil {
 		return Player{}, err
@@ -42,11 +42,11 @@ func selectPlayersWhere(dbConn *sql.DB, query string) ([]Player, error) {
 	return players, nil
 }
 
-func updatePlayerById(dbConn *sql.DB, id string, player Player) (sql.Result, error) {
+func UpdatePlayerById(dbConn *sql.DB, id string, player Player) (sql.Result, error) {
 	return dbConn.Exec("UPDATE players SET name = ?, ranking = ?, preferred_cue = ?, profile_picture_url = ? WHERE id = ?", player.Name, player.Ranking, player.PreferredCue, player.ProfilePictureUrl, id)
 }
 
-func deletePlayerById(dbConn *sql.DB, id string) (sql.Result, error) {
+func DeletePlayerById(dbConn *sql.DB, id string) (sql.Result, error) {
 	return dbConn.Exec("DELETE FROM players WHERE id = ?", id)
 }
 
@@ -58,7 +58,7 @@ type Player struct {
 	ProfilePictureUrl string `json:"profilePictureUrl"`
 }
 
-func (p Player) create(dbConn *sql.DB) (sql.Result, error) {
+func (p Player) Create(dbConn *sql.DB) (sql.Result, error) {
 	if p.Ranking != 0 {
 		rows, err := dbConn.Query("SELECT * FROM players WHERE ranking = ?", p.Ranking)
 		if err != nil {
