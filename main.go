@@ -30,13 +30,17 @@ func main() {
 		panic(err)
 	}
 
-	router := gin.Default()
+	router := setupRouter()
+	router.Run() // listen and serve on 0.0.0.0:8080
+}
 
+func setupRouter() *gin.Engine {
+	router := gin.Default()
 	router.POST("/players", postPlayer)
 	router.GET("/players", getPlayers)
 	router.GET("/players/:id", getPlayer)
 	router.PUT("/players/:id", putPlayer)
 	router.DELETE("/players/:id", deletePlayer)
 
-	router.Run() // listen and serve on 0.0.0.0:8080
+	return router
 }
