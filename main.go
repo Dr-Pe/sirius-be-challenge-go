@@ -43,11 +43,15 @@ func setupDatabaseConnection(dbName string) *sql.DB {
 
 func setupRouter() *gin.Engine {
 	router := gin.Default()
+
 	router.POST("/players", postPlayer)
 	router.GET("/players", getPlayers)
 	router.GET("/players/:id", getPlayer)
 	router.PUT("/players/:id", putPlayer)
 	router.DELETE("/players/:id", deletePlayer)
+
+	router.POST("/matches", postMatch)
+	router.GET("/matches", getMatches)
 
 	return router
 }

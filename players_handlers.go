@@ -14,7 +14,7 @@ func postPlayer(ctx *gin.Context) {
 
 	err = ctx.ShouldBindJSON(&player)
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid player data"})
 		return
 	}
 	_, err = player.Create(dbConn)
