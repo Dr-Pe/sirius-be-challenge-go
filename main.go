@@ -12,13 +12,21 @@ import (
 var dbConn *sql.DB
 
 func main() {
+	dbConn = setupDatabaseConnection("database.db")
+	defer dbConn.Close()
+
+	router := setupRouter()
+	router.Run() // listen and serve on 0.0.0.0:8080
+}
+
+func setupDatabaseConnection(dbName string) *sql.DB {
+	var dbConn *sql.DB
 	var err error
 
-	dbConn, err = sql.Open("sqlite", "database.db")
+	dbConn, err = sql.Open("sqlite", dbName)
 	if err != nil {
 		panic(err)
 	}
-	defer dbConn.Close()
 
 	_, err = models.CreatePlayersTable(dbConn)
 	if err != nil {
@@ -30,8 +38,7 @@ func main() {
 		panic(err)
 	}
 
-	router := setupRouter()
-	router.Run() // listen and serve on 0.0.0.0:8080
+	return dbConn
 }
 
 func setupRouter() *gin.Engine {
