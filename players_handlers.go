@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"net/http"
 
 	"example.com/m/v2/models"
@@ -18,11 +19,15 @@ func postPlayer(ctx *gin.Context) {
 	}
 	_, err = player.Create(dbConn)
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		var playerErr models.PlayerError
+		if errors.As(err, &playerErr) {
+			ctx.JSON(playerErr.StatusCode, gin.H{"error": playerErr.Err})
+		} else {
+			ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		}
 		return
-	} else {
-		ctx.JSON(http.StatusOK, gin.H{"message": "Player created successfully"})
 	}
+	ctx.JSON(http.StatusOK, gin.H{"message": "Player created successfully"})
 }
 
 func getPlayers(ctx *gin.Context) {
@@ -43,7 +48,7 @@ func getPlayers(ctx *gin.Context) {
 		players, err = models.SelectAllPlayers(dbConn)
 	}
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 	ctx.JSON(http.StatusOK, players)
@@ -56,7 +61,12 @@ func getPlayer(ctx *gin.Context) {
 
 	player, err = models.SelectPlayerById(dbConn, id)
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		var playerErr models.PlayerError
+		if errors.As(err, &playerErr) {
+			ctx.JSON(playerErr.StatusCode, gin.H{"error": playerErr.Err})
+		} else {
+			ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		}
 		return
 	}
 	ctx.JSON(http.StatusOK, player)

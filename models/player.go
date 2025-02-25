@@ -3,6 +3,7 @@ package models
 import (
 	"database/sql"
 	"fmt"
+	"net/http"
 )
 
 func CreatePlayersTable(dbConn *sql.DB) (sql.Result, error) {
@@ -22,6 +23,10 @@ func SelectPlayerById(dbConn *sql.DB, id string) (Player, error) {
 	if err != nil {
 		return Player{}, err
 	}
+	if len(players) == 0 {
+		return Player{}, PlayerError{http.StatusNotFound, fmt.Sprintf("Player with id %s not found", id)}
+	}
+
 	return players[0], nil
 }
 
@@ -50,6 +55,15 @@ func DeletePlayerById(dbConn *sql.DB, id string) (sql.Result, error) {
 	return dbConn.Exec("DELETE FROM players WHERE id = ?", id)
 }
 
+type PlayerError struct {
+	StatusCode int
+	Err        string
+}
+
+func (e PlayerError) Error() string {
+	return e.Err
+}
+
 type Player struct {
 	id                int    `uri:"id"`
 	Name              string `json:"name" binding:"required"`
@@ -66,7 +80,7 @@ func (p Player) Create(dbConn *sql.DB) (sql.Result, error) {
 		}
 		defer rows.Close()
 		if rows.Next() {
-			return nil, fmt.Errorf("Player with ranking %d already exists", p.Ranking)
+			return nil, PlayerError{http.StatusConflict, fmt.Sprintf("Player with ranking %d already exists", p.Ranking)}
 		}
 	}
 
