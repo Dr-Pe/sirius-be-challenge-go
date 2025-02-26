@@ -22,8 +22,7 @@ func SelectPlayerById(dbConn *sql.DB, id string) (Player, error) {
 	players, err := selectPlayersWhere(dbConn, "SELECT * FROM players WHERE id = "+id)
 	if err != nil {
 		return Player{}, err
-	}
-	if len(players) == 0 {
+	} else if len(players) == 0 {
 		return Player{}, PlayerError{http.StatusNotFound, fmt.Sprintf("Player with id %s not found", id)}
 	}
 

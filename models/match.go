@@ -31,8 +31,7 @@ func SelectMatchById(dbConn *sql.DB, id string) (Match, error) {
 	matches, err := selectMatchesWhere(dbConn, "SELECT * FROM players WHERE id = "+id)
 	if err != nil {
 		return Match{}, err
-	}
-	if len(matches) == 0 {
+	} else if len(matches) == 0 {
 		return Match{}, MatchError{http.StatusNotFound, fmt.Sprintf("Match with id %s not found", id)}
 	}
 
@@ -84,20 +83,37 @@ type Match struct {
 }
 
 func (m *Match) Create(dbConn *sql.DB) (sql.Result, error) {
-	var err error
-
 	if m.Player1id == m.Player2id {
 		return nil, MatchError{StatusCode: http.StatusBadRequest, Err: "Player1 and Player2 must be different"}
-	}
-	if _, err = SelectPlayerById(dbConn, fmt.Sprintf("%d", m.Player1id)); err != nil {
+	} else if _, err := SelectPlayerById(dbConn, fmt.Sprintf("%d", m.Player1id)); err != nil {
 		return nil, MatchError{StatusCode: http.StatusBadRequest, Err: "Player1 does not exist"}
-	}
-	if _, err = SelectPlayerById(dbConn, fmt.Sprintf("%d", m.Player2id)); err != nil {
+	} else if _, err := SelectPlayerById(dbConn, fmt.Sprintf("%d", m.Player2id)); err != nil {
 		return nil, MatchError{StatusCode: http.StatusBadRequest, Err: "Player2 does not exist"}
-	}
-	if m.endTime == (time.Time{}) {
+	} else if m.endTime == (time.Time{}) {
 		m.endTime = m.StartTime.Add(time.Hour)
 	}
-	// TODO: Implement double-booking check
-	return dbConn.Exec("INSERT INTO matches (player1_id, player2_id, start_time, table_number) VALUES (?, ?, ?, ?)", m.Player1id, m.Player2id, m.StartTime, m.tableNumber)
+	tx, err := dbConn.Begin()
+	if err != nil {
+		return nil, err
+	}
+	rows, err := tx.Query("SELECT * FROM matches WHERE table_number = ? AND ((start_time BETWEEN ? AND ?) OR (end_time BETWEEN ? AND ?))", m.tableNumber, m.StartTime, m.endTime, m.StartTime, m.endTime)
+	if err != nil {
+		tx.Rollback()
+		return nil, err
+	} else if rows.Next() {
+		tx.Rollback()
+		return nil, MatchError{StatusCode: http.StatusBadRequest, Err: "Table already booked"}
+	}
+	rows, err = tx.Query("SELECT * FROM matches WHERE (player1_id = ? OR player2_id = ?) AND ((start_time BETWEEN ? AND ?) OR (end_time BETWEEN ? AND ?))", m.Player1id, m.Player1id, m.StartTime, m.endTime, m.StartTime, m.endTime)
+	if err != nil {
+		tx.Rollback()
+		return nil, err
+	} else if rows.Next() {
+		tx.Rollback()
+		return nil, MatchError{StatusCode: http.StatusBadRequest, Err: "Players already booked"}
+	}
+	res, err := tx.Exec("INSERT INTO matches (player1_id, player2_id, start_time, end_time, table_number) VALUES (?, ?, ?, ?, ?)", m.Player1id, m.Player2id, m.StartTime, m.endTime, m.tableNumber)
+	tx.Commit()
+
+	return res, err
 }

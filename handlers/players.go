@@ -41,12 +41,12 @@ func (h Handler) GetPlayers(ctx *gin.Context) {
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
-	}
-	if query.Name != "" {
+	} else if query.Name != "" {
 		players, err = models.SelectPlayersByName(h.DbConn, query.Name)
 	} else {
 		players, err = models.SelectAllPlayers(h.DbConn)
 	}
+
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return

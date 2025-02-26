@@ -41,12 +41,12 @@ func (h Handler) GetMatches(ctx *gin.Context) {
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
-	}
-	if query.Status != "" {
+	} else if query.Status != "" {
 		matches, err = models.SelectMatchesByStatus(h.DbConn, query.Status)
 	} else {
 		matches, err = models.SelectAllMatches(h.DbConn)
 	}
+
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
