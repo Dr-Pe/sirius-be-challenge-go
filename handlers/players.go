@@ -89,7 +89,7 @@ func (h Handler) PutPlayer(ctx *gin.Context) {
 	}
 	_, err = models.UpdatePlayerById(h.DbConn, id, player)
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 	ctx.JSON(http.StatusOK, gin.H{"message": "Player updated successfully"})
@@ -101,7 +101,7 @@ func (h Handler) DeletePlayer(ctx *gin.Context) {
 
 	_, err = models.DeletePlayerById(h.DbConn, id)
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 	ctx.JSON(http.StatusOK, gin.H{"message": "Player deleted successfully"})

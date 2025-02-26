@@ -53,3 +53,51 @@ func (h Handler) GetMatches(ctx *gin.Context) {
 	}
 	ctx.JSON(http.StatusOK, matches)
 }
+
+func (h Handler) GetMatch(ctx *gin.Context) {
+	var err error
+	var match models.Match
+	var id = ctx.Param("id")
+
+	match, err = models.SelectMatchById(h.DbConn, id)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	ctx.JSON(http.StatusOK, match)
+}
+
+func (h Handler) PutMatch(ctx *gin.Context) {
+	var err error
+	var id = ctx.Param("id")
+	var match models.Match
+
+	match, err = models.SelectMatchById(h.DbConn, id)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	err = ctx.ShouldBindJSON(&match)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	_, err = models.UpdateMatchById(h.DbConn, id, match)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	ctx.JSON(http.StatusOK, gin.H{"message": "Match updated successfully"})
+}
+
+func (h Handler) DeleteMatch(ctx *gin.Context) {
+	var err error
+	var id = ctx.Param("id")
+
+	_, err = models.DeleteMatchById(h.DbConn, id)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	ctx.JSON(http.StatusOK, gin.H{"message": "Match deleted successfully"})
+}

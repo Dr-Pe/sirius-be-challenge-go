@@ -57,6 +57,9 @@ func setupRouter(h handlers.Handler) *gin.Engine {
 
 	router.POST("/matches", h.PostMatch)
 	router.GET("/matches", h.GetMatches)
+	router.GET("/matches/:id", h.GetMatch)
+	router.PUT("/matches/:id", h.PutMatch)
+	router.DELETE("/matches/:id", h.DeleteMatch)
 
 	return router
 }

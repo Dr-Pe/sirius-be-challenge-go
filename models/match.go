@@ -17,14 +17,26 @@ func SelectAllMatches(dbConn *sql.DB) ([]Match, error) {
 
 func SelectMatchesByStatus(dbConn *sql.DB, status string) ([]Match, error) {
 	if status == "upcoming" {
-		return selectMatchesWhere(dbConn, "SELECT * FROM matches WHERE start_time > "+time.Now().Format("2006-01-02 15:04:05"))
+		return selectMatchesWhere(dbConn, "SELECT * FROM matches WHERE start_time > '"+time.Now().Format("2006-01-02 15:04:05")+"'")
 	} else if status == "ongoing" {
-		return selectMatchesWhere(dbConn, "SELECT * FROM matches WHERE "+time.Now().Format("2006-01-02 15:04:05")+" BETWEEN start_time AND end_time")
+		return selectMatchesWhere(dbConn, "SELECT * FROM matches WHERE '"+time.Now().Format("2006-01-02 15:04:05")+"' BETWEEN start_time AND end_time")
 	} else if status == "finished" {
-		return selectMatchesWhere(dbConn, "SELECT * FROM matches WHERE end_time < "+time.Now().Format("2006-01-02 15:04:05"))
+		return selectMatchesWhere(dbConn, "SELECT * FROM matches WHERE end_time < '"+time.Now().Format("2006-01-02 15:04:05")+"'")
 	} else {
 		return nil, MatchError{StatusCode: http.StatusBadRequest, Err: "Invalid status"}
 	}
+}
+
+func SelectMatchById(dbConn *sql.DB, id string) (Match, error) {
+	matches, err := selectMatchesWhere(dbConn, "SELECT * FROM players WHERE id = "+id)
+	if err != nil {
+		return Match{}, err
+	}
+	if len(matches) == 0 {
+		return Match{}, MatchError{http.StatusNotFound, fmt.Sprintf("Match with id %s not found", id)}
+	}
+
+	return matches[0], nil
 }
 
 func selectMatchesWhere(dbConn *sql.DB, query string) ([]Match, error) {
@@ -42,6 +54,14 @@ func selectMatchesWhere(dbConn *sql.DB, query string) ([]Match, error) {
 	}
 
 	return matches, nil
+}
+
+func UpdateMatchById(dbConn *sql.DB, id string, match Match) (sql.Result, error) {
+	return dbConn.Exec("UPDATE matches SET player1_id = ?, player2_id = ?, start_time = ?, end_time = ?, winner_id = ?, table_number = ? WHERE id = ?", match.Player1id, match.Player2id, match.StartTime, match.endTime, match.winnerId, match.tableNumber, id)
+}
+
+func DeleteMatchById(dbConn *sql.DB, id string) (sql.Result, error) {
+	return dbConn.Exec("DELETE FROM matches WHERE id = ?", id)
 }
 
 type MatchError struct {
