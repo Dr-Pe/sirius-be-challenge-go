@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 
+	"example.com/m/v2/handlers"
 	"example.com/m/v2/models"
 	"github.com/gin-gonic/gin"
 	_ "modernc.org/sqlite"
@@ -11,13 +12,13 @@ import (
 
 func main() {
 	var dbConn *sql.DB
-	var handler Handler
+	var handler handlers.Handler
 	var router *gin.Engine
 
 	dbConn = setupDatabaseConnection("database.db")
 	defer dbConn.Close()
 
-	handler = Handler{dbConn: dbConn}
+	handler = handlers.Handler{DbConn: dbConn}
 
 	router = setupRouter(handler)
 	router.Run() // listen and serve on 0.0.0.0:8080
@@ -45,17 +46,17 @@ func setupDatabaseConnection(dbName string) *sql.DB {
 	return dbConn
 }
 
-func setupRouter(h Handler) *gin.Engine {
+func setupRouter(h handlers.Handler) *gin.Engine {
 	router := gin.Default()
 
-	router.POST("/players", h.postPlayer)
-	router.GET("/players", h.getPlayers)
-	router.GET("/players/:id", h.getPlayer)
-	router.PUT("/players/:id", h.putPlayer)
-	router.DELETE("/players/:id", h.deletePlayer)
+	router.POST("/players", h.PostPlayer)
+	router.GET("/players", h.GetPlayers)
+	router.GET("/players/:id", h.GetPlayer)
+	router.PUT("/players/:id", h.PutPlayer)
+	router.DELETE("/players/:id", h.DeletePlayer)
 
-	router.POST("/matches", h.postMatch)
-	router.GET("/matches", h.getMatches)
+	router.POST("/matches", h.PostMatch)
+	router.GET("/matches", h.GetMatches)
 
 	return router
 }

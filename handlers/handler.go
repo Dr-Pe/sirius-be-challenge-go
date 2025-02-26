@@ -1,7 +1,7 @@
-package main
+package handlers
 
 import "database/sql"
 
 type Handler struct {
-	dbConn *sql.DB
+	DbConn *sql.DB
 }

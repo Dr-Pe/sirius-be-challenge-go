@@ -9,6 +9,7 @@ import (
 	"testing"
 	"time"
 
+	"example.com/m/v2/handlers"
 	"example.com/m/v2/models"
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
@@ -20,7 +21,7 @@ var w *httptest.ResponseRecorder
 
 func setupTestingSuit() (*sql.DB, *gin.Engine, *httptest.ResponseRecorder) {
 	dbConn := setupDatabaseConnection("test" + time.Now().Format("20060102_150405") + ".db")
-	handler := Handler{dbConn: dbConn}
+	handler := handlers.Handler{DbConn: dbConn}
 	router := setupRouter(handler)
 	w := httptest.NewRecorder()
 

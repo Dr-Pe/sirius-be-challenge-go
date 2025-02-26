@@ -1,4 +1,4 @@
-package main
+package handlers
 
 import (
 	"errors"
@@ -8,7 +8,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func (h Handler) postMatch(ctx *gin.Context) {
+func (h Handler) PostMatch(ctx *gin.Context) {
 	var err error
 	var match models.Match
 
@@ -17,7 +17,7 @@ func (h Handler) postMatch(ctx *gin.Context) {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid match data"})
 		return
 	}
-	_, err = match.Create(h.dbConn)
+	_, err = match.Create(h.DbConn)
 	if err != nil {
 		var matchErr models.MatchError
 		if errors.As(err, &matchErr) {
@@ -30,7 +30,7 @@ func (h Handler) postMatch(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, gin.H{"message": "Match created successfully"})
 }
 
-func (h Handler) getMatches(ctx *gin.Context) {
+func (h Handler) GetMatches(ctx *gin.Context) {
 	var err error
 	var matches []models.Match
 	var query = struct {
@@ -43,9 +43,9 @@ func (h Handler) getMatches(ctx *gin.Context) {
 		return
 	}
 	if query.Status != "" {
-		matches, err = models.SelectMatchesByStatus(h.dbConn, query.Status)
+		matches, err = models.SelectMatchesByStatus(h.DbConn, query.Status)
 	} else {
-		matches, err = models.SelectAllMatches(h.dbConn)
+		matches, err = models.SelectAllMatches(h.DbConn)
 	}
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})

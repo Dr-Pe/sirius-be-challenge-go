@@ -1,4 +1,4 @@
-package main
+package handlers
 
 import (
 	"errors"
@@ -8,7 +8,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func (h Handler) postPlayer(ctx *gin.Context) {
+func (h Handler) PostPlayer(ctx *gin.Context) {
 	var err error
 	var player models.Player
 
@@ -17,7 +17,7 @@ func (h Handler) postPlayer(ctx *gin.Context) {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid player data"})
 		return
 	}
-	_, err = player.Create(h.dbConn)
+	_, err = player.Create(h.DbConn)
 	if err != nil {
 		var playerErr models.PlayerError
 		if errors.As(err, &playerErr) {
@@ -30,7 +30,7 @@ func (h Handler) postPlayer(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, gin.H{"message": "Player created successfully"})
 }
 
-func (h Handler) getPlayers(ctx *gin.Context) {
+func (h Handler) GetPlayers(ctx *gin.Context) {
 	var err error
 	var players []models.Player
 	var query = struct {
@@ -43,9 +43,9 @@ func (h Handler) getPlayers(ctx *gin.Context) {
 		return
 	}
 	if query.Name != "" {
-		players, err = models.SelectPlayersByName(h.dbConn, query.Name)
+		players, err = models.SelectPlayersByName(h.DbConn, query.Name)
 	} else {
-		players, err = models.SelectAllPlayers(h.dbConn)
+		players, err = models.SelectAllPlayers(h.DbConn)
 	}
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -54,12 +54,12 @@ func (h Handler) getPlayers(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, players)
 }
 
-func (h Handler) getPlayer(ctx *gin.Context) {
+func (h Handler) GetPlayer(ctx *gin.Context) {
 	var err error
 	var player models.Player
 	var id = ctx.Param("id")
 
-	player, err = models.SelectPlayerById(h.dbConn, id)
+	player, err = models.SelectPlayerById(h.DbConn, id)
 	if err != nil {
 		var playerErr models.PlayerError
 		if errors.As(err, &playerErr) {
@@ -72,12 +72,12 @@ func (h Handler) getPlayer(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, player)
 }
 
-func (h Handler) putPlayer(ctx *gin.Context) {
+func (h Handler) PutPlayer(ctx *gin.Context) {
 	var err error
 	var id = ctx.Param("id")
 	var player models.Player
 
-	player, err = models.SelectPlayerById(h.dbConn, id)
+	player, err = models.SelectPlayerById(h.DbConn, id)
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -87,7 +87,7 @@ func (h Handler) putPlayer(ctx *gin.Context) {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	_, err = models.UpdatePlayerById(h.dbConn, id, player)
+	_, err = models.UpdatePlayerById(h.DbConn, id, player)
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -95,11 +95,11 @@ func (h Handler) putPlayer(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, gin.H{"message": "Player updated successfully"})
 }
 
-func (h Handler) deletePlayer(ctx *gin.Context) {
+func (h Handler) DeletePlayer(ctx *gin.Context) {
 	var err error
 	var id = ctx.Param("id")
 
-	_, err = models.DeletePlayerById(h.dbConn, id)
+	_, err = models.DeletePlayerById(h.DbConn, id)
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
