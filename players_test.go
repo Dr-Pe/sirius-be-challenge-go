@@ -17,21 +17,28 @@ import (
 
 var dbConn *sql.DB
 var router *gin.Engine
-var w *httptest.ResponseRecorder
 
-func setupTestingSuit() (*sql.DB, *gin.Engine, *httptest.ResponseRecorder) {
+func setupTestingSuit() (*sql.DB, *gin.Engine) {
 	dbConn := setupDatabaseConnection("test" + time.Now().Format("20060102_150405") + ".db")
 	handler := handlers.Handler{DbConn: dbConn}
 	router := setupRouter(handler)
-	w := httptest.NewRecorder()
 
-	return dbConn, router, w
+	return dbConn, router
 }
 
-func TestPostPlayer(t *testing.T) {
-	dbConn, router, w = setupTestingSuit()
+func TestPlayers(t *testing.T) {
+	dbConn, router = setupTestingSuit()
 	defer dbConn.Close()
 
+	t.Run("PostPlayer", testPostPlayer)
+	t.Run("PostPlayerWithSameRanking", testPostPlayerWithSameRanking)
+	t.Run("GetPlayers", testGetPlayers)
+	t.Run("GetPlayer", testGetPlayer)
+	t.Run("PutPlayer", testPutPlayer)
+	t.Run("DeletePlayer", testDeletePlayer)
+}
+
+func testPostPlayer(t *testing.T) {
 	// Create an example user for testing
 	examplePlayer := models.Player{
 		Name:    "TestPostPlayer",
@@ -39,15 +46,13 @@ func TestPostPlayer(t *testing.T) {
 	}
 	playerJson, _ := json.Marshal(examplePlayer)
 	req, _ := http.NewRequest("POST", "/players", strings.NewReader(string(playerJson)))
+	w := httptest.NewRecorder()
 	router.ServeHTTP(w, req)
 
 	assert.Equal(t, 200, w.Code)
 }
 
-func TestPostPlayerWithSameRanking(t *testing.T) {
-	dbConn, router, w = setupTestingSuit()
-	defer dbConn.Close()
-
+func testPostPlayerWithSameRanking(t *testing.T) {
 	// Intend to create a player with the same ranking (it should fail)
 	examplePlayer := models.Player{
 		Name:    "TestPostPlayerWithSameRanking",
@@ -55,36 +60,31 @@ func TestPostPlayerWithSameRanking(t *testing.T) {
 	}
 	playerJson, _ := json.Marshal(examplePlayer)
 	req, _ := http.NewRequest("POST", "/players", strings.NewReader(string(playerJson)))
+	w := httptest.NewRecorder()
 	router.ServeHTTP(w, req)
 
 	assert.Equal(t, 409, w.Code)
 }
 
-func TestGetPlayers(t *testing.T) {
-	dbConn, router, w = setupTestingSuit()
-	defer dbConn.Close()
-
+func testGetPlayers(t *testing.T) {
+	// Get all users
 	req, _ := http.NewRequest("GET", "/players", nil)
+	w := httptest.NewRecorder()
 	router.ServeHTTP(w, req)
 
 	assert.Equal(t, 200, w.Code)
 }
 
-func TestGetPlayer(t *testing.T) {
-	dbConn, router, w = setupTestingSuit()
-	defer dbConn.Close()
-
+func testGetPlayer(t *testing.T) {
 	// Get the created user
 	req, _ := http.NewRequest("GET", "/players/1", nil)
+	w := httptest.NewRecorder()
 	router.ServeHTTP(w, req)
 
 	assert.Equal(t, 200, w.Code)
 }
 
-func TestPutPlayer(t *testing.T) {
-	dbConn, router, w = setupTestingSuit()
-	defer dbConn.Close()
-
+func testPutPlayer(t *testing.T) {
 	// Update the created user
 	examplePlayer := models.Player{
 		Name:    "TestPutPlayer",
@@ -92,6 +92,7 @@ func TestPutPlayer(t *testing.T) {
 	}
 	playerJson, _ := json.Marshal(examplePlayer)
 	req, _ := http.NewRequest("PUT", "/players/1", strings.NewReader(string(playerJson)))
+	w := httptest.NewRecorder()
 	router.ServeHTTP(w, req)
 
 	assert.Equal(t, 200, w.Code)
@@ -108,12 +109,10 @@ func TestPutPlayer(t *testing.T) {
 	assert.Equal(t, examplePlayer.Ranking, player.Ranking)
 }
 
-func TestDeletePlayer(t *testing.T) {
-	dbConn, router, w = setupTestingSuit()
-	defer dbConn.Close()
-
+func testDeletePlayer(t *testing.T) {
 	// Delete the created user
 	req, _ := http.NewRequest("DELETE", "/players/1", nil)
+	w := httptest.NewRecorder()
 	router.ServeHTTP(w, req)
 
 	assert.Equal(t, 200, w.Code)
