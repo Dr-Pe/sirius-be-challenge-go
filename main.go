@@ -9,13 +9,17 @@ import (
 	_ "modernc.org/sqlite"
 )
 
-var dbConn *sql.DB
-
 func main() {
+	var dbConn *sql.DB
+	var handler Handler
+	var router *gin.Engine
+
 	dbConn = setupDatabaseConnection("database.db")
 	defer dbConn.Close()
 
-	router := setupRouter()
+	handler = Handler{dbConn: dbConn}
+
+	router = setupRouter(handler)
 	router.Run() // listen and serve on 0.0.0.0:8080
 }
 
@@ -41,17 +45,17 @@ func setupDatabaseConnection(dbName string) *sql.DB {
 	return dbConn
 }
 
-func setupRouter() *gin.Engine {
+func setupRouter(h Handler) *gin.Engine {
 	router := gin.Default()
 
-	router.POST("/players", postPlayer)
-	router.GET("/players", getPlayers)
-	router.GET("/players/:id", getPlayer)
-	router.PUT("/players/:id", putPlayer)
-	router.DELETE("/players/:id", deletePlayer)
+	router.POST("/players", h.postPlayer)
+	router.GET("/players", h.getPlayers)
+	router.GET("/players/:id", h.getPlayer)
+	router.PUT("/players/:id", h.putPlayer)
+	router.DELETE("/players/:id", h.deletePlayer)
 
-	router.POST("/matches", postMatch)
-	router.GET("/matches", getMatches)
+	router.POST("/matches", h.postMatch)
+	router.GET("/matches", h.getMatches)
 
 	return router
 }

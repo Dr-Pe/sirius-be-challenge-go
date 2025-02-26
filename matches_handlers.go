@@ -8,7 +8,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func postMatch(ctx *gin.Context) {
+func (h Handler) postMatch(ctx *gin.Context) {
 	var err error
 	var match models.Match
 
@@ -17,7 +17,7 @@ func postMatch(ctx *gin.Context) {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid match data"})
 		return
 	}
-	_, err = match.Create(dbConn)
+	_, err = match.Create(h.dbConn)
 	if err != nil {
 		var matchErr models.MatchError
 		if errors.As(err, &matchErr) {
@@ -30,7 +30,7 @@ func postMatch(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, gin.H{"message": "Match created successfully"})
 }
 
-func getMatches(ctx *gin.Context) {
+func (h Handler) getMatches(ctx *gin.Context) {
 	var err error
 	var matches []models.Match
 	var query = struct {
@@ -43,9 +43,9 @@ func getMatches(ctx *gin.Context) {
 		return
 	}
 	if query.Status != "" {
-		matches, err = models.SelectMatchesByStatus(dbConn, query.Status)
+		matches, err = models.SelectMatchesByStatus(h.dbConn, query.Status)
 	} else {
-		matches, err = models.SelectAllMatches(dbConn)
+		matches, err = models.SelectAllMatches(h.dbConn)
 	}
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})

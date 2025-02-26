@@ -14,12 +14,14 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+var dbConn *sql.DB
 var router *gin.Engine
 var w *httptest.ResponseRecorder
 
 func setupTestingSuit() (*sql.DB, *gin.Engine, *httptest.ResponseRecorder) {
 	dbConn := setupDatabaseConnection("test" + time.Now().Format("20060102_150405") + ".db")
-	router := setupRouter()
+	handler := Handler{dbConn: dbConn}
+	router := setupRouter(handler)
 	w := httptest.NewRecorder()
 
 	return dbConn, router, w
