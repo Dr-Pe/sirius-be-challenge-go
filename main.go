@@ -3,10 +3,12 @@ package main
 import (
 	"database/sql"
 	"fmt"
+	"os"
 
 	"example.com/m/v2/handlers"
 	"example.com/m/v2/models"
 	"github.com/gin-gonic/gin"
+	"github.com/joho/godotenv"
 	_ "modernc.org/sqlite"
 )
 
@@ -15,7 +17,12 @@ func main() {
 	var handler handlers.Handler
 	var router *gin.Engine
 
-	dbConn = setupDatabaseConnection("database.db")
+	err := godotenv.Load()
+	if err != nil {
+		fmt.Println("Error loading .env file")
+	}
+
+	dbConn = setupDatabaseConnection(os.Getenv("DB_NAME"))
 	defer dbConn.Close()
 
 	handler = handlers.Handler{DbConn: dbConn}
