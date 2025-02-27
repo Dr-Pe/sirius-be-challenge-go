@@ -77,9 +77,9 @@ type Match struct {
 	Player1id   int       `json:"player1id" binding:"required"`
 	Player2id   int       `json:"player2id" binding:"required"`
 	StartTime   time.Time `json:"startTime" binding:"required"`
-	EndTime     time.Time
-	WinnerId    int
-	TableNumber int
+	EndTime     time.Time `json:"endTime"`
+	WinnerId    int       `json:"winnerId"`
+	TableNumber int       `json:"tableNumber"`
 }
 
 func (m *Match) Create(dbConn *sql.DB) (sql.Result, error) {

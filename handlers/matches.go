@@ -49,7 +49,12 @@ func (h Handler) GetMatches(ctx *gin.Context) {
 	}
 
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		var matchErr models.MatchError
+		if errors.As(err, &matchErr) {
+			ctx.JSON(matchErr.StatusCode, gin.H{"error": matchErr.Err})
+		} else {
+			ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		}
 		return
 	}
 	ctx.JSON(http.StatusOK, matches)
@@ -62,7 +67,12 @@ func (h Handler) GetMatch(ctx *gin.Context) {
 
 	match, err = models.SelectMatchById(h.DbConn, id)
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		var matchErr models.MatchError
+		if errors.As(err, &matchErr) {
+			ctx.JSON(matchErr.StatusCode, gin.H{"error": matchErr.Err})
+		} else {
+			ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		}
 		return
 	}
 	ctx.JSON(http.StatusOK, match)
