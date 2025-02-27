@@ -17,7 +17,7 @@ func SelectAllMatches(dbConn *sql.DB) ([]Match, error) {
 
 func SelectMatchesByStatus(dbConn *sql.DB, status string) ([]Match, error) {
 	if status == "upcoming" {
-		return selectMatchesWhere(dbConn, "SELECT * FROM matches WHERE start_time > '"+time.Now().Format("2006-01-02 15:04:05")+"'")
+		return selectMatchesWhere(dbConn, "SELECT * FROM matches WHERE start_time >= '"+time.Now().Format("2006-01-02 15:04:05")+"'")
 	} else if status == "ongoing" {
 		return selectMatchesWhere(dbConn, "SELECT * FROM matches WHERE '"+time.Now().Format("2006-01-02 15:04:05")+"' BETWEEN start_time AND end_time")
 	} else if status == "finished" {
@@ -102,7 +102,7 @@ func (m *Match) Create(dbConn *sql.DB) (sql.Result, error) {
 		return nil, err
 	} else if rows.Next() {
 		tx.Rollback()
-		return nil, MatchError{StatusCode: http.StatusBadRequest, Err: "Table already booked"}
+		return nil, MatchError{StatusCode: http.StatusConflict, Err: "Table already booked"}
 	}
 	rows, err = tx.Query("SELECT * FROM matches WHERE (player1_id = ? OR player2_id = ?) AND ((start_time BETWEEN ? AND ?) OR (end_time BETWEEN ? AND ?))", m.Player1id, m.Player1id, m.StartTime, m.EndTime, m.StartTime, m.EndTime)
 	if err != nil {
@@ -110,7 +110,7 @@ func (m *Match) Create(dbConn *sql.DB) (sql.Result, error) {
 		return nil, err
 	} else if rows.Next() {
 		tx.Rollback()
-		return nil, MatchError{StatusCode: http.StatusBadRequest, Err: "Players already booked"}
+		return nil, MatchError{StatusCode: http.StatusConflict, Err: "Players already booked"}
 	}
 	res, err := tx.Exec("INSERT INTO matches (player1_id, player2_id, start_time, end_time, table_number) VALUES (?, ?, ?, ?, ?)", m.Player1id, m.Player2id, m.StartTime, m.EndTime, m.TableNumber)
 	tx.Commit()

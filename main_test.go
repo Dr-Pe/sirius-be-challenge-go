@@ -75,6 +75,17 @@ func testGetPlayers(t *testing.T) {
 
 	assert.Greater(t, len(players), 0)
 	assert.Equal(t, "TestPostPlayer", players[0].Name)
+
+	// Get the same user by name
+	req, _ = http.NewRequest("GET", "/players?name="+players[0].Name, nil)
+	w = httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+
+	assert.Equal(t, 200, w.Code)
+
+	json.Unmarshal(w.Body.Bytes(), &players)
+
+	assert.Greater(t, len(players), 0)
 }
 
 func testGetPlayer(t *testing.T) {
@@ -132,19 +143,20 @@ func testDeletePlayer(t *testing.T) {
 }
 
 func testPostMatch(t *testing.T) {
-	var w = httptest.NewRecorder()
 	// Create two players for testing
 	examplePlayer1 := models.Player{
 		Name: "TestPostMatch1",
 	}
 	playerJson, _ := json.Marshal(examplePlayer1)
 	req, _ := http.NewRequest("POST", "/players", strings.NewReader(string(playerJson)))
+	w := httptest.NewRecorder()
 	router.ServeHTTP(w, req)
 	examplePlayer2 := models.Player{
 		Name: "TestPostMatch2",
 	}
 	playerJson, _ = json.Marshal(examplePlayer2)
 	req, _ = http.NewRequest("POST", "/players", strings.NewReader(string(playerJson)))
+	w = httptest.NewRecorder()
 	router.ServeHTTP(w, req)
 
 	// Create an example match for testing
@@ -155,9 +167,17 @@ func testPostMatch(t *testing.T) {
 	}
 	matchJson, _ := json.Marshal(exampleMatch)
 	req, _ = http.NewRequest("POST", "/matches", strings.NewReader(string(matchJson)))
+	w = httptest.NewRecorder()
 	router.ServeHTTP(w, req)
 
 	assert.Equal(t, 200, w.Code)
+
+	// Intent to create a match with the same players in the same time
+	req, _ = http.NewRequest("POST", "/matches", strings.NewReader(string(matchJson)))
+	w = httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+
+	assert.Equal(t, 409, w.Code)
 }
 
 func testGetMatches(t *testing.T) {
@@ -174,6 +194,17 @@ func testGetMatches(t *testing.T) {
 
 	assert.Greater(t, len(matches), 0)
 	assert.Equal(t, 2, matches[0].Player1id)
+
+	// Get the match by status
+	req, _ = http.NewRequest("GET", "/matches?status=upcoming", nil)
+	w = httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+
+	assert.Equal(t, 200, w.Code)
+
+	json.Unmarshal(w.Body.Bytes(), &matches)
+
+	assert.Greater(t, len(matches), 0)
 }
 
 func testGetMatch(t *testing.T) {
