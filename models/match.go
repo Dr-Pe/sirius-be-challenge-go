@@ -28,7 +28,7 @@ func SelectMatchesByStatus(dbConn *sql.DB, status string) ([]Match, error) {
 }
 
 func SelectMatchById(dbConn *sql.DB, id string) (Match, error) {
-	matches, err := selectMatchesWhere(dbConn, "SELECT * FROM players WHERE id = "+id)
+	matches, err := selectMatchesWhere(dbConn, "SELECT * FROM matches WHERE id = "+id)
 	if err != nil {
 		return Match{}, err
 	} else if len(matches) == 0 {

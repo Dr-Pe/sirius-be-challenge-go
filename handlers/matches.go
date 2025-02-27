@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"database/sql"
 	"errors"
 	"net/http"
 
@@ -82,7 +83,7 @@ func (h Handler) PutMatch(ctx *gin.Context) {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	_, err = models.UpdateMatchById(h.DbConn, id, match)
+	err = updateMatch(h.DbConn, id, match)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -100,4 +101,26 @@ func (h Handler) DeleteMatch(ctx *gin.Context) {
 		return
 	}
 	ctx.JSON(http.StatusOK, gin.H{"message": "Match deleted successfully"})
+}
+
+func updateMatch(dbConn *sql.DB, id string, match models.Match) error {
+	var err error
+	var loserId int
+
+	_, err = models.UpdateMatchById(dbConn, id, match)
+	if err != nil {
+		return err
+	} else if match.WinnerId != 0 {
+		if match.WinnerId == match.Player1id {
+			loserId = match.Player2id
+		} else {
+			loserId = match.Player1id
+		}
+		err = models.UpdatePoints(dbConn, match.WinnerId, loserId)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }

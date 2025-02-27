@@ -7,7 +7,7 @@ import (
 )
 
 func CreatePlayersTable(dbConn *sql.DB) (sql.Result, error) {
-	return dbConn.Exec("CREATE TABLE IF NOT EXISTS players (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, ranking INTEGER, preferred_cue TEXT, profile_picture_url TEXT)")
+	return dbConn.Exec("CREATE TABLE IF NOT EXISTS players (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, ranking INTEGER, preferred_cue TEXT, profile_picture_url TEXT, points INTEGER)")
 }
 
 func SelectAllPlayers(dbConn *sql.DB) ([]Player, error) {
@@ -39,7 +39,7 @@ func selectPlayersWhere(dbConn *sql.DB, query string) ([]Player, error) {
 	for rows.Next() {
 		var player Player
 
-		rows.Scan(&player.Id, &player.Name, &player.Ranking, &player.PreferredCue, &player.ProfilePictureUrl)
+		rows.Scan(&player.Id, &player.Name, &player.Ranking, &player.PreferredCue, &player.ProfilePictureUrl, &player.Points)
 		players = append(players, player)
 	}
 
@@ -47,11 +47,28 @@ func selectPlayersWhere(dbConn *sql.DB, query string) ([]Player, error) {
 }
 
 func UpdatePlayerById(dbConn *sql.DB, id string, player Player) (sql.Result, error) {
-	return dbConn.Exec("UPDATE players SET name = ?, ranking = ?, preferred_cue = ?, profile_picture_url = ? WHERE id = ?", player.Name, player.Ranking, player.PreferredCue, player.ProfilePictureUrl, id)
+	return dbConn.Exec("UPDATE players SET name = ?, ranking = ?, preferred_cue = ?, profile_picture_url = ?, points = ? WHERE id = ?", player.Name, player.Ranking, player.PreferredCue, player.ProfilePictureUrl, player.Points, id)
 }
 
 func DeletePlayerById(dbConn *sql.DB, id string) (sql.Result, error) {
 	return dbConn.Exec("DELETE FROM players WHERE id = ?", id)
+}
+
+func UpdatePoints(dbConn *sql.DB, winnerId int, loserId int) error {
+	var winner Player
+	var loser Player
+	var err error
+	winner, err = SelectPlayerById(dbConn, fmt.Sprintf("%d", winnerId))
+	if err != nil {
+		return err
+	}
+	loser, err = SelectPlayerById(dbConn, fmt.Sprintf("%d", loserId))
+	if err != nil {
+		return err
+	}
+	fmt.Println("update points", winnerId, loserId)
+
+	return winner.win(dbConn, loser)
 }
 
 type PlayerError struct {
@@ -69,22 +86,23 @@ type Player struct {
 	Ranking           int    `json:"ranking"` // 0 means no ranking, 1 means the best player
 	PreferredCue      string `json:"preferredCue"`
 	ProfilePictureUrl string `json:"profilePictureUrl"`
+	Points            int    `json:"points"` // 1 point for each win, 2 points for winning a better player
 }
 
 func (p Player) Create(dbConn *sql.DB) (sql.Result, error) {
-	if p.Ranking != 0 {
-		rows, err := dbConn.Query("SELECT * FROM players WHERE ranking = ?", p.Ranking)
-		if err != nil {
-			return nil, err
-		}
-		defer rows.Close()
-		if rows.Next() {
-			return nil, PlayerError{http.StatusConflict, fmt.Sprintf("Player with ranking %d already exists", p.Ranking)}
-		}
-	}
-
 	return dbConn.Exec(
 		"INSERT INTO players (name, ranking, preferred_cue, profile_picture_url) VALUES (?, ?, ?, ?)",
 		p.Name, p.Ranking, p.PreferredCue, p.ProfilePictureUrl,
 	)
+}
+
+func (p Player) win(dbConn *sql.DB, loser Player) error {
+	if loser.Points > p.Points {
+		p.Points += 2
+	} else {
+		p.Points++
+	}
+	_, err := UpdatePlayerById(dbConn, fmt.Sprintf("%d", p.Id), p)
+
+	return err
 }
