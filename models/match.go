@@ -48,7 +48,7 @@ func selectMatchesWhere(dbConn *sql.DB, query string) ([]Match, error) {
 	for rows.Next() {
 		var match Match
 
-		rows.Scan(&match.id, &match.Player1id, &match.Player2id, &match.StartTime, &match.endTime, &match.winnerId, &match.tableNumber)
+		rows.Scan(&match.Id, &match.Player1id, &match.Player2id, &match.StartTime, &match.endTime, &match.winnerId, &match.tableNumber)
 		matches = append(matches, match)
 	}
 
@@ -73,7 +73,7 @@ func (e MatchError) Error() string {
 }
 
 type Match struct {
-	id          int
+	Id          int       `json:"id" uri:"id"`
 	Player1id   int       `json:"player1id" binding:"required"`
 	Player2id   int       `json:"player2id" binding:"required"`
 	StartTime   time.Time `json:"startTime" binding:"required"`

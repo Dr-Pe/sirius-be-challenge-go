@@ -39,7 +39,7 @@ func selectPlayersWhere(dbConn *sql.DB, query string) ([]Player, error) {
 	for rows.Next() {
 		var player Player
 
-		rows.Scan(&player.id, &player.Name, &player.Ranking, &player.PreferredCue, &player.ProfilePictureUrl)
+		rows.Scan(&player.Id, &player.Name, &player.Ranking, &player.PreferredCue, &player.ProfilePictureUrl)
 		players = append(players, player)
 	}
 
@@ -64,7 +64,7 @@ func (e PlayerError) Error() string {
 }
 
 type Player struct {
-	id                int    `uri:"id"`
+	Id                int    `json:"id" uri:"id"`
 	Name              string `json:"name" binding:"required"`
 	Ranking           int    `json:"ranking"` // 0 means no ranking, 1 means the best player
 	PreferredCue      string `json:"preferredCue"`
