@@ -48,7 +48,7 @@ func selectMatchesWhere(dbConn *sql.DB, query string) ([]Match, error) {
 	for rows.Next() {
 		var match Match
 
-		rows.Scan(&match.Id, &match.Player1id, &match.Player2id, &match.StartTime, &match.endTime, &match.winnerId, &match.tableNumber)
+		rows.Scan(&match.Id, &match.Player1id, &match.Player2id, &match.StartTime, &match.EndTime, &match.WinnerId, &match.TableNumber)
 		matches = append(matches, match)
 	}
 
@@ -56,7 +56,7 @@ func selectMatchesWhere(dbConn *sql.DB, query string) ([]Match, error) {
 }
 
 func UpdateMatchById(dbConn *sql.DB, id string, match Match) (sql.Result, error) {
-	return dbConn.Exec("UPDATE matches SET player1_id = ?, player2_id = ?, start_time = ?, end_time = ?, winner_id = ?, table_number = ? WHERE id = ?", match.Player1id, match.Player2id, match.StartTime, match.endTime, match.winnerId, match.tableNumber, id)
+	return dbConn.Exec("UPDATE matches SET player1_id = ?, player2_id = ?, start_time = ?, end_time = ?, winner_id = ?, table_number = ? WHERE id = ?", match.Player1id, match.Player2id, match.StartTime, match.EndTime, match.WinnerId, match.TableNumber, id)
 }
 
 func DeleteMatchById(dbConn *sql.DB, id string) (sql.Result, error) {
@@ -77,9 +77,9 @@ type Match struct {
 	Player1id   int       `json:"player1id" binding:"required"`
 	Player2id   int       `json:"player2id" binding:"required"`
 	StartTime   time.Time `json:"startTime" binding:"required"`
-	endTime     time.Time
-	winnerId    int
-	tableNumber int
+	EndTime     time.Time
+	WinnerId    int
+	TableNumber int
 }
 
 func (m *Match) Create(dbConn *sql.DB) (sql.Result, error) {
@@ -89,14 +89,14 @@ func (m *Match) Create(dbConn *sql.DB) (sql.Result, error) {
 		return nil, MatchError{StatusCode: http.StatusBadRequest, Err: "Player1 does not exist"}
 	} else if _, err := SelectPlayerById(dbConn, fmt.Sprintf("%d", m.Player2id)); err != nil {
 		return nil, MatchError{StatusCode: http.StatusBadRequest, Err: "Player2 does not exist"}
-	} else if m.endTime == (time.Time{}) {
-		m.endTime = m.StartTime.Add(time.Hour)
+	} else if m.EndTime == (time.Time{}) {
+		m.EndTime = m.StartTime.Add(time.Hour)
 	}
 	tx, err := dbConn.Begin()
 	if err != nil {
 		return nil, err
 	}
-	rows, err := tx.Query("SELECT * FROM matches WHERE table_number = ? AND ((start_time BETWEEN ? AND ?) OR (end_time BETWEEN ? AND ?))", m.tableNumber, m.StartTime, m.endTime, m.StartTime, m.endTime)
+	rows, err := tx.Query("SELECT * FROM matches WHERE table_number = ? AND ((start_time BETWEEN ? AND ?) OR (end_time BETWEEN ? AND ?))", m.TableNumber, m.StartTime, m.EndTime, m.StartTime, m.EndTime)
 	if err != nil {
 		tx.Rollback()
 		return nil, err
@@ -104,7 +104,7 @@ func (m *Match) Create(dbConn *sql.DB) (sql.Result, error) {
 		tx.Rollback()
 		return nil, MatchError{StatusCode: http.StatusBadRequest, Err: "Table already booked"}
 	}
-	rows, err = tx.Query("SELECT * FROM matches WHERE (player1_id = ? OR player2_id = ?) AND ((start_time BETWEEN ? AND ?) OR (end_time BETWEEN ? AND ?))", m.Player1id, m.Player1id, m.StartTime, m.endTime, m.StartTime, m.endTime)
+	rows, err = tx.Query("SELECT * FROM matches WHERE (player1_id = ? OR player2_id = ?) AND ((start_time BETWEEN ? AND ?) OR (end_time BETWEEN ? AND ?))", m.Player1id, m.Player1id, m.StartTime, m.EndTime, m.StartTime, m.EndTime)
 	if err != nil {
 		tx.Rollback()
 		return nil, err
@@ -112,7 +112,7 @@ func (m *Match) Create(dbConn *sql.DB) (sql.Result, error) {
 		tx.Rollback()
 		return nil, MatchError{StatusCode: http.StatusBadRequest, Err: "Players already booked"}
 	}
-	res, err := tx.Exec("INSERT INTO matches (player1_id, player2_id, start_time, end_time, table_number) VALUES (?, ?, ?, ?, ?)", m.Player1id, m.Player2id, m.StartTime, m.endTime, m.tableNumber)
+	res, err := tx.Exec("INSERT INTO matches (player1_id, player2_id, start_time, end_time, table_number) VALUES (?, ?, ?, ?, ?)", m.Player1id, m.Player2id, m.StartTime, m.EndTime, m.TableNumber)
 	tx.Commit()
 
 	return res, err
