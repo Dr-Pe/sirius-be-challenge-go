@@ -1,10 +1,13 @@
 package main
 
 import (
+	"context"
 	"database/sql"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"strings"
 	"testing"
 	"time"
@@ -12,22 +15,31 @@ import (
 	"example.com/m/v2/handlers"
 	"example.com/m/v2/models"
 	"github.com/gin-gonic/gin"
+	"github.com/joho/godotenv"
 	"github.com/stretchr/testify/assert"
 )
 
 var dbConn *sql.DB
+var handler handlers.Handler
 var router *gin.Engine
 
-func setupTestingSuit() (*sql.DB, *gin.Engine) {
+func setupTestingSuit() (*sql.DB, handlers.Handler, *gin.Engine) {
 	dbConn := setupDatabaseConnection("test" + time.Now().Format("20060102_150405") + ".db")
-	handler := handlers.Handler{DbConn: dbConn}
+
+	err := godotenv.Load()
+	if err != nil {
+		fmt.Println("Error loading .env file")
+		panic(err)
+	}
+
+	handler := handlers.Handler{DbConn: dbConn, S3Client: setupS3Client(os.Getenv("AWS_REGION")), BucketName: fmt.Sprintf("test-bucket-%d", time.Now().UnixNano()), Region: os.Getenv("AWS_REGION")}
 	router := setupRouter(handler)
 
-	return dbConn, router
+	return dbConn, handler, router
 }
 
 func TestPlayers(t *testing.T) {
-	dbConn, router = setupTestingSuit()
+	dbConn, _, router = setupTestingSuit()
 	defer dbConn.Close()
 
 	t.Run("PostPlayer", testPostPlayer)
@@ -38,7 +50,7 @@ func TestPlayers(t *testing.T) {
 }
 
 func TestMatches(t *testing.T) {
-	dbConn, router = setupTestingSuit()
+	dbConn, _, router = setupTestingSuit()
 	defer dbConn.Close()
 
 	t.Run("PostMatch", testPostMatch)
@@ -46,6 +58,25 @@ func TestMatches(t *testing.T) {
 	t.Run("GetMatch", testGetMatch)
 	t.Run("PutMatch", testPutMatch)
 	t.Run("DeleteMatch", testDeleteMatch)
+}
+
+func TestBucketCreation(t *testing.T) {
+	if testing.Short() {
+		t.Skip("Skipping testing in short mode")
+	}
+
+	var err error
+
+	dbConn, handler, router = setupTestingSuit()
+	defer dbConn.Close()
+
+	err = handler.CreateBucket(context.TODO())
+
+	assert.Nil(t, err)
+
+	err = handler.DeleteBucket(context.TODO())
+
+	assert.Nil(t, err)
 }
 
 func testPostPlayer(t *testing.T) {

@@ -3,16 +3,17 @@ module example.com/m/v2
 go 1.22.8
 
 require (
+	github.com/aws/aws-sdk-go-v2 v1.36.2
+	github.com/aws/aws-sdk-go-v2/config v1.29.7
+	github.com/aws/aws-sdk-go-v2/service/s3 v1.77.1
 	github.com/gin-gonic/gin v1.10.0
+	github.com/joho/godotenv v1.5.1
 	github.com/stretchr/testify v1.10.0
-	google.golang.org/protobuf v1.34.1
 	modernc.org/sqlite v1.35.0
 )
 
 require (
-	github.com/aws/aws-sdk-go-v2 v1.36.2 // indirect
 	github.com/aws/aws-sdk-go-v2/aws/protocol/eventstream v1.6.10 // indirect
-	github.com/aws/aws-sdk-go-v2/config v1.29.7 // indirect
 	github.com/aws/aws-sdk-go-v2/credentials v1.17.60 // indirect
 	github.com/aws/aws-sdk-go-v2/feature/ec2/imds v1.16.29 // indirect
 	github.com/aws/aws-sdk-go-v2/internal/configsources v1.3.33 // indirect
@@ -23,7 +24,6 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/internal/checksum v1.6.1 // indirect
 	github.com/aws/aws-sdk-go-v2/service/internal/presigned-url v1.12.14 // indirect
 	github.com/aws/aws-sdk-go-v2/service/internal/s3shared v1.18.14 // indirect
-	github.com/aws/aws-sdk-go-v2/service/s3 v1.77.1 // indirect
 	github.com/aws/aws-sdk-go-v2/service/sso v1.24.16 // indirect
 	github.com/aws/aws-sdk-go-v2/service/ssooidc v1.28.15 // indirect
 	github.com/aws/aws-sdk-go-v2/service/sts v1.33.15 // indirect
@@ -42,7 +42,6 @@ require (
 	github.com/goccy/go-json v0.10.2 // indirect
 	github.com/google/go-cmp v0.6.0 // indirect
 	github.com/google/uuid v1.6.0 // indirect
-	github.com/joho/godotenv v1.5.1 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
 	github.com/klauspost/cpuid/v2 v2.2.7 // indirect
 	github.com/leodido/go-urn v1.4.0 // indirect
@@ -61,6 +60,7 @@ require (
 	golang.org/x/net v0.27.0 // indirect
 	golang.org/x/sys v0.28.0 // indirect
 	golang.org/x/text v0.16.0 // indirect
+	google.golang.org/protobuf v1.34.1 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 	modernc.org/libc v1.61.13 // indirect
 	modernc.org/mathutil v1.7.1 // indirect
