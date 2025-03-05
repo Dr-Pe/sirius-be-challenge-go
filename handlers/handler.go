@@ -48,3 +48,23 @@ func (h Handler) bucketExists(ctx context.Context) bool {
 	}
 	return true
 }
+
+func (h Handler) createPresignedUrl(ctx context.Context, objectKey string) (string, error) {
+	psClient := s3.NewPresignClient(h.S3Client)
+	req, err := psClient.PresignPutObject(ctx, &s3.PutObjectInput{
+		Bucket: aws.String(h.BucketName),
+		Key:    aws.String(objectKey),
+	})
+	if err != nil {
+		return "", err
+	}
+	return req.URL, err
+}
+
+func (h Handler) deleteObject(ctx context.Context, objectKey string) error {
+	_, err := h.S3Client.DeleteObject(ctx, &s3.DeleteObjectInput{
+		Bucket: aws.String(h.BucketName),
+		Key:    aws.String(objectKey),
+	})
+	return err
+}

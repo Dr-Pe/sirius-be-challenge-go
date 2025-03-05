@@ -86,6 +86,8 @@ func setupRouter(h handlers.Handler) *gin.Engine {
 	router.PUT("/matches/:id", h.PutMatch)
 	router.DELETE("/matches/:id", h.DeleteMatch)
 
+	router.POST("/presign/:filename", h.PostPresign)
+
 	return router
 }
 
