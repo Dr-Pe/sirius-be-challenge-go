@@ -24,9 +24,10 @@ var handler handlers.Handler
 var router *gin.Engine
 
 func setupTestingSuit() (*sql.DB, handlers.Handler, *gin.Engine) {
+	var err error
 	dbConn := setupDatabaseConnection("test" + time.Now().Format("20060102_150405") + ".db")
 
-	err := godotenv.Load()
+	err = godotenv.Load()
 	if err != nil {
 		fmt.Println("Error loading .env file")
 		panic(err)
@@ -35,11 +36,13 @@ func setupTestingSuit() (*sql.DB, handlers.Handler, *gin.Engine) {
 	handler := handlers.Handler{DbConn: dbConn, S3Client: setupS3Client(os.Getenv("AWS_REGION")), BucketName: fmt.Sprintf("test-bucket-%d", time.Now().UnixNano()), Region: os.Getenv("AWS_REGION")}
 	router := setupRouter(handler)
 
+	err = handler.CreateBucket(context.TODO())
+
 	return dbConn, handler, router
 }
 
 func TestPlayers(t *testing.T) {
-	dbConn, _, router = setupTestingSuit()
+	dbConn, handler, router = setupTestingSuit()
 	defer dbConn.Close()
 
 	t.Run("PostPlayer", testPostPlayer)
@@ -47,10 +50,13 @@ func TestPlayers(t *testing.T) {
 	t.Run("GetPlayer", testGetPlayer)
 	t.Run("PutPlayer", testPutPlayer)
 	t.Run("DeletePlayer", testDeletePlayer)
+
+	err := handler.DeleteBucket(context.TODO())
+	assert.Nil(t, err)
 }
 
 func TestMatches(t *testing.T) {
-	dbConn, _, router = setupTestingSuit()
+	dbConn, handler, router = setupTestingSuit()
 	defer dbConn.Close()
 
 	t.Run("PostMatch", testPostMatch)
@@ -58,24 +64,8 @@ func TestMatches(t *testing.T) {
 	t.Run("GetMatch", testGetMatch)
 	t.Run("PutMatch", testPutMatch)
 	t.Run("DeleteMatch", testDeleteMatch)
-}
 
-func TestBucketCreation(t *testing.T) {
-	if testing.Short() {
-		t.Skip("Skipping testing in short mode")
-	}
-
-	var err error
-
-	dbConn, handler, router = setupTestingSuit()
-	defer dbConn.Close()
-
-	err = handler.CreateBucket(context.TODO())
-
-	assert.Nil(t, err)
-
-	err = handler.DeleteBucket(context.TODO())
-
+	err := handler.DeleteBucket(context.TODO())
 	assert.Nil(t, err)
 }
 
@@ -162,7 +152,6 @@ func testDeletePlayer(t *testing.T) {
 	req, _ := http.NewRequest("DELETE", "/players/1", nil)
 	w := httptest.NewRecorder()
 	router.ServeHTTP(w, req)
-
 	assert.Equal(t, 200, w.Code)
 
 	// Check if the user was deleted
@@ -192,15 +181,15 @@ func testPostMatch(t *testing.T) {
 
 	// Create an example match for testing
 	exampleMatch := models.Match{
-		Player1id: 2,
-		Player2id: 3,
+		Player1id: 1,
+		Player2id: 2,
 		StartTime: time.Now(),
 	}
 	matchJson, _ := json.Marshal(exampleMatch)
 	req, _ = http.NewRequest("POST", "/matches", strings.NewReader(string(matchJson)))
 	w = httptest.NewRecorder()
 	router.ServeHTTP(w, req)
-
+	fmt.Println(w.Body.String())
 	assert.Equal(t, 200, w.Code)
 
 	// Intent to create a match with the same players in the same time
@@ -224,7 +213,7 @@ func testGetMatches(t *testing.T) {
 	json.Unmarshal(w.Body.Bytes(), &matches)
 
 	assert.Greater(t, len(matches), 0)
-	assert.Equal(t, 2, matches[0].Player1id)
+	assert.Equal(t, 1, matches[0].Player1id)
 
 	// Get the match by status
 	req, _ = http.NewRequest("GET", "/matches?status=upcoming", nil)
@@ -250,14 +239,14 @@ func testGetMatch(t *testing.T) {
 	var match models.Match
 	json.Unmarshal(w.Body.Bytes(), &match)
 
-	assert.Equal(t, 2, match.Player1id)
+	assert.Equal(t, 1, match.Player1id)
 }
 
 func testPutMatch(t *testing.T) {
 	// Update the created match
 	exampleMatch := models.Match{
-		Player1id: 2,
-		Player2id: 3,
+		Player1id: 1,
+		Player2id: 2,
 		StartTime: time.Now(),
 		EndTime:   time.Now(),
 		WinnerId:  2,
@@ -266,7 +255,6 @@ func testPutMatch(t *testing.T) {
 	req, _ := http.NewRequest("PUT", "/matches/1", strings.NewReader(string(matchJson)))
 	w := httptest.NewRecorder()
 	router.ServeHTTP(w, req)
-
 	assert.Equal(t, 200, w.Code)
 
 	// Get the updated match
