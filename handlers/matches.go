@@ -104,12 +104,22 @@ func (h Handler) PutMatch(ctx *gin.Context) {
 func (h Handler) DeleteMatch(ctx *gin.Context) {
 	var err error
 	var id = ctx.Param("id")
+	var res sql.Result
 
-	_, err = models.DeleteMatchById(h.DbConn, id)
+	res, err = models.DeleteMatchById(h.DbConn, id)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
+	rowsAffected, err := res.RowsAffected()
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	} else if rowsAffected == 0 {
+		ctx.JSON(http.StatusNotFound, gin.H{"error": "Match not found"})
+		return
+	}
+
 	ctx.JSON(http.StatusOK, gin.H{"message": "Match deleted successfully"})
 }
 
