@@ -6,15 +6,21 @@ import (
 	"fmt"
 	"os"
 
+	_ "example.com/m/v2/docs"
 	"example.com/m/v2/handlers"
 	"example.com/m/v2/models"
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
+	swaggerFiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
 	_ "modernc.org/sqlite"
 )
 
+// @title           8-Ball Pool Manager
+// @version         0.8
+// @license.name  Apache 2.0
 func main() {
 	var err error
 	var handler handlers.Handler
@@ -85,6 +91,8 @@ func setupRouter(h handlers.Handler) *gin.Engine {
 	router.GET("/matches/:id", h.GetMatch)
 	router.PUT("/matches/:id", h.PutMatch)
 	router.DELETE("/matches/:id", h.DeleteMatch)
+
+	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	return router
 }

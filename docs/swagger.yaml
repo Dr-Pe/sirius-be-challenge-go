@@ -1,0 +1,61 @@
+definitions:
+  gin.H:
+    additionalProperties: {}
+    type: object
+  models.Player:
+    properties:
+      id:
+        type: integer
+      name:
+        type: string
+      points:
+        description: 1 point for each win, 2 points for winning a better player
+        type: integer
+      preferredCue:
+        type: string
+      profilePictureUrl:
+        type: string
+      ranking:
+        description: 0 means no ranking, 1 means the best player
+        type: integer
+    required:
+    - name
+    type: object
+info:
+  contact: {}
+  license:
+    name: Apache 2.0
+  title: 8-Ball Pool Manager
+  version: "0.9"
+paths:
+  /players:
+    post:
+      consumes:
+      - application/json
+      description: Create a new player
+      parameters:
+      - description: Player object
+        in: body
+        name: player
+        required: true
+        schema:
+          $ref: '#/definitions/models.Player'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/gin.H'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/gin.H'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/gin.H'
+      summary: Post player
+      tags:
+      - players
+swagger: "2.0"

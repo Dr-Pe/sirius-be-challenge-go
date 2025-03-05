@@ -11,6 +11,16 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// @Summary Post player
+// @Description Create a new player
+// @Tags players
+// @Accept json
+// @Produce json
+// @Param player body models.Player true "Player object"
+// @Success 200 {object} gin.H
+// @Failure 400 {object} gin.H
+// @Failure 500 {object} gin.H
+// @Router /players [post]
 func (h Handler) PostPlayer(ctx *gin.Context) {
 	var err error
 	var player models.Player
