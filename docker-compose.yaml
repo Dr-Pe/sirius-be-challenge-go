@@ -1,0 +1,7 @@
+services:
+  backend:
+    build: .
+    container_name: sirius-be-challenge-go
+    ports:
+      - "8080:8080"
+    restart: unless-stopped
