@@ -62,6 +62,16 @@ func (h Handler) PostPlayer(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, gin.H{"message": "Player created successfully, upload your profile picture to the following URL", "url": presignedUrl})
 }
 
+// @Summary Get players
+// @Description Get all players or players by name
+// @Tags players
+// @Accept json
+// @Produce json
+// @Param name query string false "Player name"
+// @Success 200 {array} models.Player
+// @Failure 400 {object} gin.H
+// @Failure 500 {object} gin.H
+// @Router /players [get]
 func (h Handler) GetPlayers(ctx *gin.Context) {
 	var err error
 	var players []models.Player
@@ -86,6 +96,16 @@ func (h Handler) GetPlayers(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, players)
 }
 
+// @Summary Get player
+// @Description Get player by id
+// @Tags players
+// @Accept json
+// @Produce json
+// @Param id path string true "Player ID"
+// @Success 200 {object} models.Player
+// @Failure 400 {object} gin.H
+// @Failure 500 {object} gin.H
+// @Router /players/{id} [get]
 func (h Handler) GetPlayer(ctx *gin.Context) {
 	var err error
 	var player models.Player
@@ -104,6 +124,17 @@ func (h Handler) GetPlayer(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, player)
 }
 
+// @Summary Put player
+// @Description Update player by id
+// @Tags players
+// @Accept json
+// @Produce json
+// @Param id path string true "Player ID"
+// @Param player body models.Player true "Player object"
+// @Success 200 {object} gin.H
+// @Failure 400 {object} gin.H
+// @Failure 500 {object} gin.H
+// @Router /players/{id} [put]
 func (h Handler) PutPlayer(ctx *gin.Context) {
 	var err error
 	var id = ctx.Param("id")
@@ -133,6 +164,16 @@ func (h Handler) PutPlayer(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, gin.H{"message": "Player updated successfully, you can update your profile picture using the following URL", "url": presignedUrl})
 }
 
+// @Summary Delete player
+// @Description Delete player by id
+// @Tags players
+// @Accept json
+// @Produce json
+// @Param id path string true "Player ID"
+// @Success 200 {object} gin.H
+// @Failure 400 {object} gin.H
+// @Failure 500 {object} gin.H
+// @Router /players/{id} [delete]
 func (h Handler) DeletePlayer(ctx *gin.Context) {
 	var err error
 	var id = ctx.Param("id")

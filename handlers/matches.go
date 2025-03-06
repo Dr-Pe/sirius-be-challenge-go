@@ -9,6 +9,16 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// @Summary Post match
+// @Description Create a new match
+// @Tags matches
+// @Accept json
+// @Produce json
+// @Param match body models.Match true "Match object"
+// @Success 200 {object} gin.H
+// @Failure 400 {object} gin.H
+// @Failure 500 {object} gin.H
+// @Router /matches [post]
 func (h Handler) PostMatch(ctx *gin.Context) {
 	var err error
 	var match models.Match
@@ -31,6 +41,16 @@ func (h Handler) PostMatch(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, gin.H{"message": "Match created successfully"})
 }
 
+// @Summary Get matches
+// @Description Get all matches
+// @Tags matches
+// @Accept json
+// @Produce json
+// @Param status query string false "Match status"
+// @Success 200 {object} []models.Match
+// @Failure 400 {object} gin.H
+// @Failure 500 {object} gin.H
+// @Router /matches [get]
 func (h Handler) GetMatches(ctx *gin.Context) {
 	var err error
 	var matches []models.Match
@@ -60,6 +80,16 @@ func (h Handler) GetMatches(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, matches)
 }
 
+// @Summary Get match
+// @Description Get match by id
+// @Tags matches
+// @Accept json
+// @Produce json
+// @Param id path string true "Match ID"
+// @Success 200 {object} models.Match
+// @Failure 400 {object} gin.H
+// @Failure 500 {object} gin.H
+// @Router /matches/{id} [get]
 func (h Handler) GetMatch(ctx *gin.Context) {
 	var err error
 	var match models.Match
@@ -78,6 +108,17 @@ func (h Handler) GetMatch(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, match)
 }
 
+// @Summary Put match
+// @Description Update match by id
+// @Tags matches
+// @Accept json
+// @Produce json
+// @Param id path string true "Match ID"
+// @Param match body models.Match true "Match object"
+// @Success 200 {object} gin.H
+// @Failure 400 {object} gin.H
+// @Failure 500 {object} gin.H
+// @Router /matches/{id} [put]
 func (h Handler) PutMatch(ctx *gin.Context) {
 	var err error
 	var id = ctx.Param("id")
@@ -101,6 +142,16 @@ func (h Handler) PutMatch(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, gin.H{"message": "Match updated successfully"})
 }
 
+// @Summary Delete match
+// @Description Delete match by id
+// @Tags matches
+// @Accept json
+// @Produce json
+// @Param id path string true "Match ID"
+// @Success 200 {object} gin.H
+// @Failure 400 {object} gin.H
+// @Failure 500 {object} gin.H
+// @Router /matches/{id} [delete]
 func (h Handler) DeleteMatch(ctx *gin.Context) {
 	var err error
 	var id = ctx.Param("id")

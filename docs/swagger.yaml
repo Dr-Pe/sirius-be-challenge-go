@@ -2,6 +2,27 @@ definitions:
   gin.H:
     additionalProperties: {}
     type: object
+  models.Match:
+    properties:
+      endTime:
+        type: string
+      id:
+        type: integer
+      player1id:
+        type: integer
+      player2id:
+        type: integer
+      startTime:
+        type: string
+      tableNumber:
+        type: integer
+      winnerId:
+        type: integer
+    required:
+    - player1id
+    - player2id
+    - startTime
+    type: object
   models.Player:
     properties:
       id:
@@ -26,9 +47,188 @@ info:
   license:
     name: Apache 2.0
   title: 8-Ball Pool Manager
-  version: "0.9"
+  version: "0.8"
 paths:
+  /matches:
+    get:
+      consumes:
+      - application/json
+      description: Get all matches
+      parameters:
+      - description: Match status
+        in: query
+        name: status
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.Match'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/gin.H'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/gin.H'
+      summary: Get matches
+      tags:
+      - matches
+    post:
+      consumes:
+      - application/json
+      description: Create a new match
+      parameters:
+      - description: Match object
+        in: body
+        name: match
+        required: true
+        schema:
+          $ref: '#/definitions/models.Match'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/gin.H'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/gin.H'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/gin.H'
+      summary: Post match
+      tags:
+      - matches
+  /matches/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete match by id
+      parameters:
+      - description: Match ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/gin.H'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/gin.H'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/gin.H'
+      summary: Delete match
+      tags:
+      - matches
+    get:
+      consumes:
+      - application/json
+      description: Get match by id
+      parameters:
+      - description: Match ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Match'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/gin.H'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/gin.H'
+      summary: Get match
+      tags:
+      - matches
+    put:
+      consumes:
+      - application/json
+      description: Update match by id
+      parameters:
+      - description: Match ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Match object
+        in: body
+        name: match
+        required: true
+        schema:
+          $ref: '#/definitions/models.Match'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/gin.H'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/gin.H'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/gin.H'
+      summary: Put match
+      tags:
+      - matches
   /players:
+    get:
+      consumes:
+      - application/json
+      description: Get all players or players by name
+      parameters:
+      - description: Player name
+        in: query
+        name: name
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.Player'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/gin.H'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/gin.H'
+      summary: Get players
+      tags:
+      - players
     post:
       consumes:
       - application/json
@@ -56,6 +256,97 @@ paths:
           schema:
             $ref: '#/definitions/gin.H'
       summary: Post player
+      tags:
+      - players
+  /players/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete player by id
+      parameters:
+      - description: Player ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/gin.H'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/gin.H'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/gin.H'
+      summary: Delete player
+      tags:
+      - players
+    get:
+      consumes:
+      - application/json
+      description: Get player by id
+      parameters:
+      - description: Player ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Player'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/gin.H'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/gin.H'
+      summary: Get player
+      tags:
+      - players
+    put:
+      consumes:
+      - application/json
+      description: Update player by id
+      parameters:
+      - description: Player ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Player object
+        in: body
+        name: player
+        required: true
+        schema:
+          $ref: '#/definitions/models.Player'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/gin.H'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/gin.H'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/gin.H'
+      summary: Put player
       tags:
       - players
 swagger: "2.0"
