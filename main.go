@@ -19,7 +19,7 @@ import (
 )
 
 // @title           8-Ball Pool Manager
-// @version         0.9
+// @version         1.0
 // @license.name  Apache 2.0
 func main() {
 	var err error
